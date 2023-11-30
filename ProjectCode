@@ -1,0 +1,37 @@
+import pandas as pd
+import cvxpy as cp
+
+# Read data
+data=pd.read_csv('ResHallFINALagainFR.csv')
+
+# Define variables
+dorms=data['ResidenceHall']
+rent=data['RentPerSemester']
+cost_wex=data['CostTimeWexArts']
+cost_traditions=data['CostTimeTraditions']
+cost_RPAC=data['CostTimeRPAC']
+cost_JON=data['CostTimeJON']
+cost_JOS=data['CostTimeJOS']
+num_dorms = len(data)
+num_gyms=3
+x = cp.Variable((num_dorms), boolean=True)
+
+
+#Objective Function
+obj_func=cp.Minimize(cp.sum(x*(rent+cost_wex+cost_traditions)+cp.minimum(cost_RPAC, cost_JON, cost_JOS)@x))
+
+#Constraints
+constraints=[]
+constraints.append(cp.sum(x)==1)
+
+
+
+#Solve
+problem=cp.Problem(obj_func, constraints)
+problem.solve()
+selected_dorm=data.loc[x.value ==1, 'ResidenceHall'].values[0]
+
+
+print(f"Selected dorm: {selected_dorm}")
+print(x.value)
+print(problem.value)
